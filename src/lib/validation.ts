@@ -7,6 +7,7 @@ export const signupSchema = z.object({
 });
 
 export const checkoutSchema = z.object({
+    address: z.object({ country: z.string().length(2), postcode: z.string().min(2).max(12) }),
     items: z
         .array(z.object({ productId: z.string().min(1), quantity: z.number().int().min(1).max(20) }))
         .min(1)

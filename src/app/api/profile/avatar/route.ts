@@ -15,8 +15,9 @@ export async function POST(req: Request) {
     if (!res.ok || !res.headers.get("content-type")?.startsWith("image/")) {
         return Response.json({ error: "That URL is not an image" }, { status: 400 });
     }
+    const size = Number(res.headers.get("content-length"));
+    if (!size || size > 2 * 1024 * 1024) return Response.json({ error: "Images up to 2 MB" }, { status: 400 });
     const bytes = Buffer.from(await res.arrayBuffer());
-    if (bytes.length > 2 * 1024 * 1024) return Response.json({ error: "Images up to 2 MB" }, { status: 400 });
     await prisma.user.update({ where: { id: session.userId }, data: { avatar: bytes } });
     return Response.json({ ok: true });
 }

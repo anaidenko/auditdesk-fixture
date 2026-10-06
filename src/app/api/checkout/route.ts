@@ -3,6 +3,7 @@ import { sendOrderConfirmation } from "@/lib/email";
 import { capture } from "@/lib/payments";
 import { orderTotal } from "@/lib/pricing";
 import { getSession } from "@/lib/session";
+import { quoteCents } from "@/lib/shipping";
 import { checkoutSchema } from "@/lib/validation";
 
 export async function POST(req: Request) {
@@ -10,14 +11,18 @@ export async function POST(req: Request) {
     if (!session) return new Response("Unauthorized", { status: 401 });
     const parsed = checkoutSchema.safeParse(await req.json());
     if (!parsed.success) return Response.json({ error: "Invalid cart" }, { status: 400 });
-    const { items } = parsed.data;
+    const { items, address } = parsed.data;
 
     const products = await prisma.product.findMany({
         where: { id: { in: items.map(i => i.productId) }, storeId: session.storeId, active: true }
     });
     if (products.length !== new Set(items.map(i => i.productId)).size) return Response.json({ error: "Unknown product" }, { status: 400 });
-    const lines = items.map(i => ({ ...i, priceCents: products.find(p => p.id === i.productId)!.priceCents }));
-    const total = orderTotal(lines);
+    const lines = items.map(i => {
+        const product = products.find(p => p.id === i.productId)!;
+        return { ...i, priceCents: product.priceCents, weightGrams: product.weightGrams };
+    });
+    const shipping = await quoteCents({ ...address, weightGrams: lines.reduce((sum, l) => sum + l.weightGrams * l.quantity, 0) });
+    const total = orderTotal(lines, shipping);
 
     const order = await prisma.order.create({
         data: {

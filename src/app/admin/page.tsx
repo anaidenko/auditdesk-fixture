@@ -8,7 +8,7 @@ import { deleteProduct, setActive } from "./actions";
 export default async function AdminPage() {
     const session = await getSession();
     if (!session || session.role === "customer") redirect("/");
-    const products = await prisma.product.findMany({ where: { storeId: session.storeId }, orderBy: { createdAt: "desc" } });
+    const products = await prisma.product.findMany({ where: { storeId: session.storeId }, orderBy: { createdAt: "desc" }, take: 200 });
     return (
         <main>
             <h1>Products</h1>

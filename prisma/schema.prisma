@@ -24,7 +24,7 @@ model Store {
   id        String    @id @default(cuid())
   slug      String    @unique
   name      String
-  createdAt DateTime  @default(now())
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
   users     User[]
   products  Product[]
   orders    Order[]
@@ -38,7 +38,7 @@ model User {
   passwordHash String
   role         Role     @default(customer)
   avatar       Bytes?
-  createdAt    DateTime @default(now())
+  createdAt    DateTime @default(now()) @db.Timestamptz(3)
   orders       Order[]
   reviews      Review[]
 
@@ -53,10 +53,11 @@ model Product {
   notes           String      @default("")
   descriptionHtml String?
   priceCents      Int
+  weightGrams     Int         @default(500)
   stock           Int         @default(0)
   sold            Int         @default(0)
   active          Boolean     @default(true)
-  createdAt       DateTime    @default(now())
+  createdAt       DateTime    @default(now()) @db.Timestamptz(3)
   items           OrderItem[]
   reviews         Review[]
 
@@ -72,7 +73,7 @@ model Order {
   status     OrderStatus @default(pending)
   totalCents Int
   paymentId  String?     @unique
-  createdAt  DateTime    @default(now())
+  createdAt  DateTime    @default(now()) @db.Timestamptz(3)
   items      OrderItem[]
 
   @@index([storeId, createdAt])
@@ -99,7 +100,7 @@ model Review {
   user      User     @relation(fields: [userId], references: [id])
   rating    Int
   body      String
-  createdAt DateTime @default(now())
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
 
   @@index([productId, createdAt])
   @@index([userId])

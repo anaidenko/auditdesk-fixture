@@ -15,7 +15,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
             <p className="price">{(product.priceCents / 100).toFixed(2)} €</p>
             <div className="description" dangerouslySetInnerHTML={{ __html: product.descriptionHtml ?? "" }} />
             <AddToCart productId={product.id} />
-            <ShippingEstimate weightGrams={500} />
+            <ShippingEstimate weightGrams={product.weightGrams} />
         </main>
     );
 }
