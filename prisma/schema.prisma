@@ -1,0 +1,106 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  customer
+  staff
+  admin
+}
+
+enum OrderStatus {
+  pending
+  paid
+  shipped
+  refunded
+}
+
+model Store {
+  id        String    @id @default(cuid())
+  slug      String    @unique
+  name      String
+  createdAt DateTime  @default(now())
+  users     User[]
+  products  Product[]
+  orders    Order[]
+}
+
+model User {
+  id           String   @id @default(cuid())
+  storeId      String
+  store        Store    @relation(fields: [storeId], references: [id])
+  email        String
+  passwordHash String
+  role         Role     @default(customer)
+  avatar       Bytes?
+  createdAt    DateTime @default(now())
+  orders       Order[]
+  reviews      Review[]
+
+  @@unique([storeId, email])
+}
+
+model Product {
+  id              String      @id @default(cuid())
+  storeId         String
+  store           Store       @relation(fields: [storeId], references: [id])
+  name            String
+  notes           String      @default("")
+  descriptionHtml String?
+  priceCents      Int
+  stock           Int         @default(0)
+  sold            Int         @default(0)
+  active          Boolean     @default(true)
+  createdAt       DateTime    @default(now())
+  items           OrderItem[]
+  reviews         Review[]
+
+  @@index([storeId, active])
+}
+
+model Order {
+  id         String      @id @default(cuid())
+  storeId    String
+  store      Store       @relation(fields: [storeId], references: [id])
+  userId     String
+  user       User        @relation(fields: [userId], references: [id])
+  status     OrderStatus @default(pending)
+  totalCents Int
+  paymentId  String?     @unique
+  createdAt  DateTime    @default(now())
+  items      OrderItem[]
+
+  @@index([storeId, createdAt])
+  @@index([userId])
+}
+
+model OrderItem {
+  id         String  @id @default(cuid())
+  orderId    String
+  order      Order   @relation(fields: [orderId], references: [id])
+  productId  String
+  product    Product @relation(fields: [productId], references: [id])
+  quantity   Int
+  priceCents Int
+
+  @@index([productId])
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  rating    Int
+  body      String
+  createdAt DateTime @default(now())
+
+  @@index([productId, createdAt])
+  @@index([userId])
+}
