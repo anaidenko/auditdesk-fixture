@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { ProductCard } from "@/components/ProductCard";
+import { StoreBanner } from "@/components/StoreBanner";
 import { storeBySlug, topProducts } from "@/lib/catalog";
 
 export default async function Home({ searchParams }: { searchParams: Promise<{ store?: string }> }) {
@@ -10,6 +11,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ s
     const products = await topProducts(store.id);
     return (
         <main>
+            <StoreBanner slug={store.slug} name={store.name} />
             <h1>{store.name}</h1>
             <section className="grid">
                 {products.map(p => (
